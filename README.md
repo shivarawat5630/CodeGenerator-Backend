@@ -521,4 +521,5 @@ console.error('AI generation error:', error.response?.data || error.message);
 ## 📄 License
 
 This project is licensed under the MIT License. #   C o d e G e n e r a t o r - b a c k e n d  
+ #   C o d e G e n e r a t o r - B a c k e n d  
  
