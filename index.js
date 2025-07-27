@@ -10,7 +10,7 @@ dotenv.config();
 
 const app = express();
 
-// ✅ Initialize Redis client with TLS (for Upstash or secured Redis)
+//  Initialize Redis client with TLS (for Upstash or secured Redis)
 const redisClient = new Redis(process.env.REDIS_URL, {
   tls: {}, // 🔐 Required for Upstash (TLS-enabled Redis)
   maxRetriesPerRequest: 5,
