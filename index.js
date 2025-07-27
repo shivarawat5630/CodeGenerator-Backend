@@ -26,10 +26,23 @@ redisClient.on("error", (err) => {
   console.error("❌ Redis Client Error:", err);
 });
 
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://code-generator-frontend.vercel.app', // your actual deployed frontend URL
+  'https://codegenerator-frontend.onrender.com' // if needed
+];
+
 app.use(cors({
-  origin: 'http://localhost:3000',  // ✅ your frontend URL
-  credentials: true                 // ✅ allow cookies & headers
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
 }));
+
 app.use(express.json());
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
