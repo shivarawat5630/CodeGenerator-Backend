@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "index.js",     // Or "server.js" if your entry file is server.js
+  "main": "index.js",     
   "scripts": {
     "start": "node index.js"
   },
