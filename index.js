@@ -28,20 +28,20 @@ redisClient.on("error", (err) => {
 
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://code-generator-frontend.vercel.app', // your actual deployed frontend URL
-  'https://codegenerator-frontend.onrender.com' // if needed
+  'https://code-generator-frontend-beta.vercel.app'
 ];
 
 app.use(cors({
-  origin: (origin, callback) => {
+  origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true
 }));
+
 
 app.use(express.json());
 const cookieParser = require('cookie-parser');
