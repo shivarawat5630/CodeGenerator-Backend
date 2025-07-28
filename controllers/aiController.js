@@ -1,6 +1,9 @@
-const axios = require('axios');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const GeneratedCode = require('../models/GeneratedCode');
 const ChatHistory = require('../models/ChatHistory');
+
+// Initialize Gemini with your API key
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 exports.generateComponent = async (req, res) => {
   const { prompt } = req.body;
@@ -11,46 +14,36 @@ exports.generateComponent = async (req, res) => {
   }
 
   try {
-    const response = await axios.post(
-      'https://openrouter.ai/api/v1/chat/completions',
-      {
-        model: 'gpt-4o',
-        max_tokens: 2000,
-        messages: [
-          {
-            role: 'system',
-            content: `You are a full-stack AI coding assistant.
-You can answer any kind of question related to frontend (React, Tailwind CSS, Next.js, etc.) and backend (Node.js, Express, MongoDB, PostgreSQL, etc.) technologies.
+    // ✅ Use the correct model name
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+
+    // ✅ Gemini expects a plain text prompt
+    const fullPrompt = `You are a full-stack AI coding assistant.
+
 When asked to generate UI, return clean and optimized React JSX using Tailwind CSS.
-When asked about backend, provide structured and secure Node.js or Express code.
-Always include explanations when appropriate.`
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ]
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+When asked about backend, provide secure Node.js/Express code.
 
-    const aiContent = response.data.choices[0].message.content;
+Prompt:
+${prompt}`;
 
+    // ✅ Call generateContent with a string
+    const result = await model.generateContent(fullPrompt);
+
+    // ✅ Get the response text
+    const aiContent = result.response.text();
+
+    // ✅ Extract JSX and CSS using regex
     const jsxMatch = aiContent.match(/<[^>]+>[\s\S]*?<\/[^>]+>/);
     const cssMatch = aiContent.match(/```css([\s\S]*?)```/);
 
     const jsx = jsxMatch ? jsxMatch[0] : '';
     const css = cssMatch ? cssMatch[1].trim() : '';
 
+    // ✅ Save chat history and generated code
     const chat = await ChatHistory.create({
       userId,
       prompt,
-      response: aiContent
+      response: aiContent,
     });
 
     const code = await GeneratedCode.create({
@@ -58,14 +51,12 @@ Always include explanations when appropriate.`
       jsx,
       css,
       prompt,
-      chatId: chat._id
+      chatId: chat._id,
     });
 
-    // Send the entire saved document back (includes _id, jsx, css, chatId)
     res.status(200).json(code);
-
   } catch (error) {
-    console.error('AI generation error:', error.response?.data || error.message || error);
+    console.error('Gemini generation error:', error.message || error);
     res.status(500).json({ error: 'Failed to generate component' });
   }
 };
